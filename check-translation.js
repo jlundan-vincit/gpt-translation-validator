@@ -3,7 +3,7 @@ const fs = require("fs");
 
 (async () => {
     const response = await checkTranslations(readJsonFile(process.argv[2]));
-    console.log(response);
+    console.log(JSON.stringify(response, null, 2));
 })();
 
 function readJsonFile(filePath) {

@@ -16,6 +16,36 @@ async function translateTexts(textArray) {
     return response[0]['message']['content'];
 }
 
+async function checkTranslations(translationsArray) {
+    const indexedTranslations = translationsArray.map((item, index) => {
+        return {
+            ...item,
+            index
+        }
+    });
+
+    const messages = [
+        {"role": "system", "content": "You are a translator service. The user will send you a messages with language pairs. Your job is to check if the translation is correct. " +
+                "The request will be an JSON array of objects with three properties. The id property is an identifier, which uniquely identifies the object in the array. " +
+                "The remaining two properties are language-text pairs which have been translated. You should check if the translation is correct. You should respond with the JSON array you received from the user, but append isValid property to each object in the array. " +
+                "The isValid property must be true if the translation is correct and false if the translation is not correct. The response array must be in the same order as the request array. " +
+                " You will always answer with the JSON array only, not with any other text."},
+        {"role": "user", "content": JSON.stringify(indexedTranslations)},
+    ];
+
+    const response = await sendChatMessages(messages);
+    const translated = JSON.parse(response[0]['message']['content']);
+
+    return translated.map((item) => {
+        let sourceData = indexedTranslations[item.index];
+        delete sourceData.index;
+        return {
+            sourceData: indexedTranslations[item.index],
+            isValid: item.isValid
+        }
+    });
+}
+
 async function sendChatMessages(messages) {
     try {
         const response = await openai.chat.completions.create({
@@ -30,5 +60,6 @@ async function sendChatMessages(messages) {
 }
 
 module.exports = {
-    translateTexts: translateTexts
+    translateTexts: translateTexts,
+    checkTranslations: checkTranslations
 }

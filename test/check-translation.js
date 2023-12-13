@@ -20,9 +20,11 @@ const XLSX = require("xlsx");
         }
         if (testData !== null) {
             const response = await checkTranslations(testData);
+
+            const results = argv["print-valid-results"] ? response.results : response.results.filter(item => item.isValid === false);
             const output = {
                 state: response.state,
-                results: response.results
+                results: results
             }
             if (response.lastSuccessOnRow > 0) {
                 const skip = argv["skip"] ? parseInt(argv["skip"], 10) : 0;

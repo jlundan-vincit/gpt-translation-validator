@@ -14,7 +14,7 @@ const XLSX = require("xlsx");
                 break;
             }
             case "xslx": {
-                testData = readXslxFile(argv["_"][1], argv["_"][2]);
+                testData = readXslxFile(argv["_"][1], argv["_"][2], argv["skip"], argv["page-size"]);
                 break;
             }
         }
@@ -53,7 +53,7 @@ function readTestMarkdownFiles(filePath) {
     return testData;
 }
 
-function readXslxFile(filePath, languages) {
+function readXslxFile(filePath, languages, offset, limit) {
     const workbook = XLSX.readFile(filePath);
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
@@ -64,13 +64,18 @@ function readXslxFile(filePath, languages) {
         throw new Error('Two languages must be specified for checking translations');
     }
 
-    const rows = XLSX.utils.sheet_to_json(worksheet);
+    let rows = XLSX.utils.sheet_to_json(worksheet);
 
     const firstRow = rows[0];
     for (const language of languageArray) {
         if (!firstRow[language]) {
             throw new Error(`Language column ${language} not found in the XLSX file`);
         }
+    }
+
+    if (offset && limit) {
+        rows.splice(0, offset);
+        rows.splice(limit);
     }
 
     const translations = [];

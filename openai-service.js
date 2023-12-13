@@ -8,16 +8,26 @@ const openai = new OpenAI({
 
 const validateSystemPrompt = fs.readFileSync(path.join(__dirname, 'validate-system-prompt.txt'), 'utf8');
 
-async function checkTranslations(translationsArray) {
+async function checkTranslations(translationsArray, waitTime, offset= 0, silent= true) {
     const results = [];
     let requestCount = 0;
     try {
         for (const item of translationsArray) {
             const languages = Object.keys(item);
-            results.push(await checkTranslation(languages[0], languages[1], item[languages[0]], item[languages[1]]));
+            const validationResult = await checkTranslation(languages[0], languages[1], item[languages[0]], item[languages[1]]);
+            const row = offset + requestCount + 1 + 1 // +1 because first row is header, +1 because offset is 0-based
+            results.push({
+                validation: validationResult,
+                row: row
+            });
             requestCount++;
+
+            console.log(`validation ${requestCount}/${translationsArray.length} completed (sheet row ${row}), result: ${validationResult['isValid'] ? "valid" : "invalid"}`);
+
+            await sleep(waitTime);
         }
     } catch (e) {
+        console.log(e.message);
         return {
             state: results.length === 0 ? "failure" : "partial-success",
             lastSuccessOnRow: requestCount,
@@ -52,6 +62,10 @@ async function checkTranslation(lang1, lang2, text1, text2) {
         isValid: content.isValid,
         suggestion: content.suggestion
     }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function sendChatMessages(messages) {

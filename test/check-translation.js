@@ -14,12 +14,12 @@ const XLSX = require("xlsx");
                 break;
             }
             case "xslx": {
-                testData = readXslxFile(argv["_"][1], argv["_"][2], argv["skip"], argv["page-size"]);
+                testData = readXslxFile(argv["_"][1], argv["_"][2], argv["skip"], argv["page-size"], argv["silent"]);
                 break;
             }
         }
         if (testData !== null) {
-            const response = await checkTranslations(testData);
+            const response = await checkTranslations(testData, 1000, argv["skip"]);
 
             const results = argv["print-valid-results"] ? response.results : response.results.filter(item => item.isValid === false);
             const output = {
@@ -30,7 +30,9 @@ const XLSX = require("xlsx");
                 const skip = argv["skip"] ? parseInt(argv["skip"], 10) : 0;
                 output.lastSuccessOnRow = skip + response.lastSuccessOnRow + 1; // +1 because first row is header
             }
-            console.log(JSON.stringify(output, null, 2));
+
+            const outputPath = path.join(__dirname, argv["output"] ? argv["output"] : 'output.json')
+            fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), 'utf8');
         }
     } catch (e) {
         console.log(e.message);
@@ -83,7 +85,7 @@ function readXslxFile(filePath, languages, offset, limit) {
         }
     }
 
-    if (offset && limit) {
+    if (offset !== undefined && limit !== undefined) {
         rows.splice(0, offset);
         rows.splice(limit);
     }

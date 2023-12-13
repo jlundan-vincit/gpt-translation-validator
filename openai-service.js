@@ -48,14 +48,14 @@ async function checkTranslation(lang1, lang2, text1, text2) {
     //     {"role": "user", "content": JSON.stringify([openAiInput])},
     // ];
 
-    const openAiInput = "First text is in " + lang1 + " and second text is in " + lang2 + ". " +
-    "First text: " + text1 + ". Second text: " + text2 + ". ";
+    const openAiInput = "First text is in language: " + lang1 + " and second text is in language: " + lang2 +
+    "\n\nFirst text is: " + text1 + " \n\n Second text is: " + text2;
 
     const messages = [
         {"role": "system", "content": "Your purpose is to compare markdown documents and compare translations. " +
                 "The user will send you two Markdown formatted texts and tell you the language of each text. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
                 "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the beginning of the document. You must also check that the text translations match exactly." +
-                "You must respond with a JSON object. The JSON object should have isValid property, which must be true if the texts are valid markdown, " +
+                "If the document does not contain any markdown, you must consider the document as valid markdown. You must respond with a JSON object. The JSON object should have isValid property, which must be true if the texts are valid markdown, " +
                 "the markdown formats match and the translation is correct. If you set the isValid property to false, you should also add a suggestion property to the object, which should " +
                 "include reason why isValid is set to false. You must always answer with the JSON object only, not with any other text."},
         {"role": "user", "content": openAiInput},
@@ -64,8 +64,13 @@ async function checkTranslation(lang1, lang2, text1, text2) {
     const response = await sendChatMessages(messages);
     const content = JSON.parse(response[0]['message']['content']);
 
+    const sourceData = {}
+    sourceData[lang1] = text1;
+    sourceData[lang2] = text2;
+
     return {
-        sourceData: openAiInput,
+        sourceData: sourceData,
+        prompt: openAiInput,
         isValid: content.isValid,
         suggestion: content.suggestion
     }

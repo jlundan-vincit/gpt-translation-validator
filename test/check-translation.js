@@ -21,11 +21,11 @@ function readTestFiles(filePath) {
 
     const testData = [];
     for (const [key, value] of Object.entries(testFiles)) {
-        if (key === "en") {
+        if (key === "english") {
             continue;
         }
         const testItem = {
-            "en": testFiles["en"]
+            "english": testFiles["english"]
         };
         testItem[key] = value;
         testData.push(testItem)

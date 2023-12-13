@@ -26,38 +26,49 @@ async function checkTranslations(translationsArray) {
 }
 
 async function checkTranslation(lang1, lang2, text1, text2) {
-    const openAiInput = {
-        text1: {
-            text: text1,
-            language: lang1
-        },
-        text2: {
-            text: text2,
-            language: lang2
-        }
-    }
+    // const openAiInput = {
+    //     text1: {
+    //         text: text1,
+    //         language: lang1
+    //     },
+    //     text2: {
+    //         text: text2,
+    //         language: lang2
+    //     }
+    // }
+
+    // const messages = [
+    //     {"role": "system", "content": "Your purpose is to compare markdown documents and compare translations. " +
+    //             "The request will be an JSON array of objects with two text properties. The two properties are translations written with markdown. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
+    //             "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the beginning of the document. You must also check that the text translations match exactly. Each text has two properties: text and language. " +
+    //             "The language property specifies the language of the text." +
+    //             "You must respond with JSON array which contains JSON objects. Each JSON object object should have isValid property, which must be true if the texts are valid markdown, " +
+    //             "the markdown formats match and the translation is correct. If you set the isValid property to false, you should also add a suggestion property to the object, which should " +
+    //             "include reason why isValid is set to false. The response array must be in the same order as the request array. You will always answer with the JSON array only, not with any other text."},
+    //     {"role": "user", "content": JSON.stringify([openAiInput])},
+    // ];
+
+    const openAiInput = "First text is in " + lang1 + " and second text is in " + lang2 + ". " +
+    "First text: " + text1 + ". Second text: " + text2 + ". ";
 
     const messages = [
         {"role": "system", "content": "Your purpose is to compare markdown documents and compare translations. " +
-                "The request will be an JSON array of objects with two text properties. The two properties are translations written with markdown. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
-                "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the beginning of the document. You must also check that the texts are translated correctly. Each text has two properties: text and language. " +
-                "The language property specifies the language of the text." +
-                "You must respond with JSON array which contains JSON objects. Each JSON object object should have isValid property, which must be true if the texts are valid markdown, " +
+                "The user will send you two Markdown formatted texts and tell you the language of each text. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
+                "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the beginning of the document. You must also check that the text translations match exactly." +
+                "You must respond with a JSON object. The JSON object should have isValid property, which must be true if the texts are valid markdown, " +
                 "the markdown formats match and the translation is correct. If you set the isValid property to false, you should also add a suggestion property to the object, which should " +
-                "include reason why isValid is set to false. The response array must be in the same order as the request array. You will always answer with the JSON array only, not with any other text."},
-        {"role": "user", "content": JSON.stringify([openAiInput])},
+                "include reason why isValid is set to false. You must always answer with the JSON object only, not with any other text."},
+        {"role": "user", "content": openAiInput},
     ];
 
     const response = await sendChatMessages(messages);
-    const translated = JSON.parse(response[0]['message']['content']);
+    const content = JSON.parse(response[0]['message']['content']);
 
-    return translated.map((item) => {
-        return {
-            sourceData: openAiInput,
-            isValid: item.isValid,
-            suggestion: item.suggestion
-        }
-    });
+    return {
+        sourceData: openAiInput,
+        isValid: content.isValid,
+        suggestion: content.suggestion
+    }
 }
 
 async function sendChatMessages(messages) {

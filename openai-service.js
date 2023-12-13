@@ -1,7 +1,7 @@
 const OpenAI = require('openai');
 
 const openai = new OpenAI({
-    apiKey: process.env.TRANS_OPENAI_API_KEY, // Make sure to set your API key in the environment variables
+    apiKey: process.env.TRANS_OPENAI_API_KEY,
 });
 
 async function translateTexts(textArray) {
@@ -17,58 +17,43 @@ async function translateTexts(textArray) {
 }
 
 async function checkTranslations(translationsArray) {
-    const indexedTranslations = translationsArray.map((item, index) => {
-        return {
-            text1: {
-                text: item['en'],
-                language: "en"
-            },
-            text2: {
-                text: item['fi'],
-                language: "fi"
-            },
-        //    id: index
+    const results = [];
+    for (const item of translationsArray) {
+        const languages = Object.keys(item);
+        results.push(await checkTranslation(languages[0], languages[1], item[languages[0]], item[languages[1]]));
+    }
+    return results;
+}
+
+async function checkTranslation(lang1, lang2, text1, text2) {
+    const openAiInput = {
+        text1: {
+            text: text1,
+            language: lang1
+        },
+        text2: {
+            text: text2,
+            language: lang2
         }
-    });
-
-    // const messages = [
-    //     {"role": "system", "content": "You are a translator and markdown checker service. The user will send you a messages with language pairs. Your job is to check if the translation is correct. " +
-    //             "The request will be an JSON array of objects with three properties. The id property is an identifier, which uniquely identifies the object in the array. " +
-    //             "The remaining two properties are language-text pairs which have been translated. The text is in markdown format. You should check if the translation is correct, " +
-    //             "that the markdown is correctly formatted, and that the markdown formats between languages match. You should respond with the JSON array you received from the user, " +
-    //             "but append isValid property to each object in the array and remove the language-text pairs. " +
-    //             "The isValid property must be true if the translation is correct, texts are valid markdown, and the markdown formats between texts match. Otherwise the isValid property should be false. " +
-    //             "The response array must be in the same order as the request array. You will always answer with the JSON array only, not with any other text."},
-    //     {"role": "user", "content": JSON.stringify(indexedTranslations)},
-    // ];
-
-    // const messages = [
-    //     {"role": "system", "content": "Your purpose is to compare markdown documents. " +
-    //             "The remaining two properties are markdown texts. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
-    //             "You should respond with the JSON array you received from the user, but append isValid property to each object in the array. " +
-    //             "The isValid property must be true if the texts are valid markdown and the markdown formats match. The response array must be in the same order as the request array. " +
-    //             "You will always answer with the JSON array only, not with any other text."},
-    //     {"role": "user", "content": JSON.stringify(indexedTranslations)},
-    // ];
+    }
 
     const messages = [
         {"role": "system", "content": "Your purpose is to compare markdown documents and compare translations. " +
-                "The request will be an JSON array of objects with two properties. The two properties are translations written with markdown. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
-                "You should also check that the texts are translated correctly. Each text has two properties: text and language. The language property specifies the language of the text." +
-                "You should respond with the JSON array you received from the user, but append isValid property to each object in the array. " +
-                "The isValid property must be true if the texts are valid markdown, the markdown formats match and the translation is correct. If you set the isValid property to false, you should also " +
-                "add a suggestion property to the object, which should include reason why isValid is set to false. The response array must be in the same order as the request array. " +
-                "You will always answer with the JSON array only, not with any other text."},
-        {"role": "user", "content": JSON.stringify(indexedTranslations)},
+                "The request will be an JSON array of objects with two text properties. The two properties are translations written with markdown. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
+                "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the beginning of the document. You must also check that the texts are translated correctly. Each text has two properties: text and language. " +
+                "The language property specifies the language of the text." +
+                "You must respond with JSON array which contains JSON objects. Each JSON object object should have isValid property, which must be true if the texts are valid markdown, " +
+                "the markdown formats match and the translation is correct. If you set the isValid property to false, you should also add a suggestion property to the object, which should " +
+                "include reason why isValid is set to false. The response array must be in the same order as the request array. You will always answer with the JSON array only, not with any other text."},
+        {"role": "user", "content": JSON.stringify([openAiInput])},
     ];
 
     const response = await sendChatMessages(messages);
     const translated = JSON.parse(response[0]['message']['content']);
 
-    return translated.map((item, index) => {
-        let sourceData = indexedTranslations[index];
+    return translated.map((item) => {
         return {
-            sourceData: sourceData,
+            sourceData: openAiInput,
             isValid: item.isValid,
             suggestion: item.suggestion
         }
@@ -78,7 +63,8 @@ async function checkTranslations(translationsArray) {
 async function sendChatMessages(messages) {
     try {
         const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+            //model: "gpt-3.5-turbo",
+            model: "gpt-4",
             messages: messages,
         });
 

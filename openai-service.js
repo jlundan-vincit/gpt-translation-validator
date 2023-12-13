@@ -50,18 +50,24 @@ async function checkTranslation(lang1, lang2, text1, text2) {
     ];
 
     const response = await sendChatMessages(messages);
-    const content = JSON.parse(response[0]['message']['content']);
+    const contentRaw = response[0]['message']['content'];
+    try{
+        const content = JSON.parse(contentRaw);
 
-    const sourceData = {}
-    sourceData[lang1] = text1;
-    sourceData[lang2] = text2;
+        const sourceData = {}
+        sourceData[lang1] = text1;
+        sourceData[lang2] = text2;
 
-    return {
-        sourceData: sourceData,
-        prompt: openAiInput,
-        isValid: content.isValid,
-        suggestion: content.suggestion
+        return {
+            sourceData: sourceData,
+            prompt: openAiInput,
+            isValid: content.isValid,
+            suggestion: content.suggestion
+        }
+    } catch (e) {
+        throw new Error(`Error in parsing response from OpenAI: ${e.message}, response was: ${contentRaw}`);
     }
+
 }
 
 function sleep(ms) {

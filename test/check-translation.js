@@ -20,7 +20,15 @@ const XLSX = require("xlsx");
         }
         if (testData !== null) {
             const response = await checkTranslations(testData);
-            console.log(JSON.stringify(response, null, 2));
+            const output = {
+                state: response.state,
+                results: response.results
+            }
+            if (response.lastSuccessOnRow > 0) {
+                const skip = argv["skip"] ? parseInt(argv["skip"], 10) : 0;
+                output.lastSuccessOnRow = skip + response.lastSuccessOnRow + 1; // +1 because first row is header
+            }
+            console.log(JSON.stringify(output, null, 2));
         }
     } catch (e) {
         console.log(e.message);

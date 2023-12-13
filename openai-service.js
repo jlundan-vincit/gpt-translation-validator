@@ -18,11 +18,24 @@ async function translateTexts(textArray) {
 
 async function checkTranslations(translationsArray) {
     const results = [];
-    for (const item of translationsArray) {
-        const languages = Object.keys(item);
-        results.push(await checkTranslation(languages[0], languages[1], item[languages[0]], item[languages[1]]));
+    let requestCount = 0;
+    try {
+        for (const item of translationsArray) {
+            const languages = Object.keys(item);
+            results.push(await checkTranslation(languages[0], languages[1], item[languages[0]], item[languages[1]]));
+            requestCount++;
+        }
+    } catch (e) {
+        return {
+            state: results.length === 0 ? "failure" : "partial-success",
+            lastSuccessOnRow: requestCount,
+            results: results
+        };
     }
-    return results;
+    return {
+        state: "success",
+        results: results
+    };
 }
 
 async function checkTranslation(lang1, lang2, text1, text2) {

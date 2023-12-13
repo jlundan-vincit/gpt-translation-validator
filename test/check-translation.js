@@ -83,14 +83,3 @@ function readXslxFile(filePath, languages) {
     }
     return translations;
 }
-
-function readJsonFile(filePath) {
-    try {
-        const rawData = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(rawData);
-    } catch (error) {
-        console.error('Error reading the JSON file:', error);
-        return null;
-    }
-}
-

@@ -7,20 +7,23 @@ const XLSX = require("xlsx");
     const argv = require('minimist')(process.argv.slice(2));
     let testData = null;
     const mode = argv["_"][0];
-
-    switch (mode) {
-        case "test-data": {
-            testData = readTestMarkdownFiles(argv["_"][1]);
-            break;
+    try {
+        switch (mode) {
+            case "test-data": {
+                testData = readTestMarkdownFiles(argv["_"][1]);
+                break;
+            }
+            case "xslx": {
+                testData = readXslxFile(argv["_"][1], argv["_"][2]);
+                break;
+            }
         }
-        case "xslx": {
-            testData = readXslxFile(argv["_"][1]);
-            break;
+        if (testData !== null) {
+            const response = await checkTranslations(testData);
+            console.log(JSON.stringify(response, null, 2));
         }
-    }
-    if (testData !== null) {
-        const response = await checkTranslations(testData);
-        console.log(JSON.stringify(response, null, 2));
+    } catch (e) {
+        console.log(e.message);
     }
 })();
 
@@ -50,33 +53,31 @@ function readTestMarkdownFiles(filePath) {
     return testData;
 }
 
-function readXslxFile(filePath) {
+function readXslxFile(filePath, languages) {
     const workbook = XLSX.readFile(filePath);
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
 
-    const range = XLSX.utils.decode_range(worksheet['!ref']);
-    let headers = [];
-    for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = { c: col, r: 0 }; // 0 for the first row
-        if (worksheet[XLSX.utils.encode_cell(cellAddress)]) {
-            headers.push(worksheet[XLSX.utils.encode_cell(cellAddress)].v);
-        } else {
-            headers.push(null);
+    const languageArray = languages.split(',').map(item => item.trim());
+
+    if (languageArray.length !== 2) {
+        throw new Error('Two languages must be specified for checking translations');
+    }
+
+    const rows = XLSX.utils.sheet_to_json(worksheet);
+
+    const firstRow = rows[0];
+    for (const language of languageArray) {
+        if (!firstRow[language]) {
+            throw new Error(`Language column ${language} not found in the XLSX file`);
         }
     }
 
-    const languages = [
-        headers[3],
-        headers[4]
-    ];
-
-    const rows = XLSX.utils.sheet_to_json(worksheet);
     const translations = [];
     for (const row of rows) {
         const translation = {};
-        for (let i=0; i<languages.length; i++) {
-            translation[languages[i]] = row[languages[i]];
+        for (let i=0; i<languageArray.length; i++) {
+            translation[languageArray[i]] = row[languageArray[i]];
         }
         translations.push(translation);
     }

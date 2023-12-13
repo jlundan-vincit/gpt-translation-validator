@@ -21,7 +21,7 @@ const XLSX = require("xlsx");
         if (testData !== null) {
             const response = await checkTranslations(testData, 1000, argv["skip"]);
 
-            const results = argv["print-valid-results"] ? response.results : response.results.filter(item => item.isValid === false);
+            const results = argv["print-valid-results"] ? response.results : response.results.filter(item => item.validation.isValid === false);
             const output = {
                 state: response.state,
                 results: results

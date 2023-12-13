@@ -67,7 +67,7 @@ async function checkTranslation(lang1, lang2, text1, text2) {
     const messages = [
         {"role": "system", "content": "Your purpose is to compare markdown documents and compare translations. " +
                 "The user will send you two Markdown formatted texts and tell you the language of each text. You should check if the texts are valid markdown and that the texts have the same markdown formatting. " +
-                "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the beginning of the document. You must also check that the text translations match exactly." +
+                "You must pay attention to detecting extra line changes. You must pay attention to detecting extra whitespaces especially at the middle of the document. You must also check that the text translations match exactly." +
                 "If the document does not contain any markdown, you must consider the document as valid markdown. You must respond with a JSON object. The JSON object should have isValid property, which must be true if the texts are valid markdown, " +
                 "the markdown formats match and the translation is correct. If you set the isValid property to false, you should also add a suggestion property to the object, which should " +
                 "include reason why isValid is set to false. You must always answer with the JSON object only, not with any other text."},

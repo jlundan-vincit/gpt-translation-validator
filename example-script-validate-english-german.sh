@@ -26,6 +26,9 @@ CHUNK6=1500-1800
 CHUNK7=1800-2100
 CHUNK8=2100-2400
 
+mkdir -p ${LOG_DIR}
+mkdir -p ${RESULTS_DIR}
+
 node check-translation.js xslx ${XSLX_FILE} ${LANGUAGES} --skip=${SKIP1} --page-size=${PAGE_SIZE} --output=${RESULTS_DIR}/${RESULTS_FILE_BASE}_${CHUNK1}.json > ${LOG_DIR}/${RESULTS_FILE_BASE}_${CHUNK1}.log 2>&1 &
 node check-translation.js xslx ${XSLX_FILE} ${LANGUAGES} --skip=${SKIP2} --page-size=${PAGE_SIZE} --output=${RESULTS_DIR}/${RESULTS_FILE_BASE}_${CHUNK2}.json > ${LOG_DIR}/${RESULTS_FILE_BASE}_${CHUNK2}.log 2>&1 &
 node check-translation.js xslx ${XSLX_FILE} ${LANGUAGES} --skip=${SKIP3} --page-size=${PAGE_SIZE} --output=${RESULTS_DIR}/${RESULTS_FILE_BASE}_${CHUNK3}.json > ${LOG_DIR}/${RESULTS_FILE_BASE}_${CHUNK3}.log 2>&1 &

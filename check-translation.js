@@ -1,4 +1,4 @@
-const {checkTranslations} = require("../openai-service");
+const {checkTranslations} = require("./openai-service");
 const fs = require("fs");
 const path = require('path');
 const XLSX = require("xlsx");

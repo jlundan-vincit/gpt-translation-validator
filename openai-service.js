@@ -76,7 +76,7 @@ async function checkTranslation(lang1, lang2, text1, text2) {
             if (attempt >= maxAttempts) {
                 throw new Error(`Error in parsing response from OpenAI: ${e.message}, response was: ${contentRaw}`);
             } else {
-                await sleep(5000);
+                await sleep(60000);
                 console.log(`Error in parsing response from OpenAI: ${e.message}, retrying...`);
             }
         }
